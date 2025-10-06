@@ -108,7 +108,7 @@ function logError(message) {
 
 	const AO_NODE = {
 		url: 'http://localhost:8734',
-		scheduler: 'mYJTM8VpIibDLuyGLQTcbcPy-LeOY48qzECADTUYfWc'
+		//scheduler: 'mYJTM8VpIibDLuyGLQTcbcPy-LeOY48qzECADTUYfWc'
 	}
 
 	const dependencies = {
@@ -361,25 +361,57 @@ function logError(message) {
 				expect(comments).toEqualLength(2);
 
 				logTest('Testing comment status update...');
-				const commentStatusUpdate = await permaweb.updateCommentStatus({
+				await permaweb.updateCommentStatus({
 					commentsId: commentsId,
 					commentId: comments[0].id,
 					status: 'inactive'
 				});
 
 				comments = await permaweb.getComments({ commentsId: commentsId });
-
 				expect(comments[0].status).toEqual('inactive');
 
+				logTest('Testing update comment content...');
+				const newContent = 'Test Comment 1 updated';
+				await permaweb.updateCommentContent({
+					commentsId: commentsId,
+					commentId: comments[0].id,
+					content: newContent
+				});
+				comments = await permaweb.getComments({ commentsId: commentsId });
+				expect(comments[0].content).toEqual(newContent);
+
+
+				logTest('Testing pin comment...');
+				await permaweb.pinComment({
+					commentsId: commentsId,
+					commentId: comments[1].id
+				});
+
+				comments = await permaweb.getComments({ commentsId: commentsId });
+				expect(comments[1].metadata).toHaveProperty('pinnedOriginalDepth')
+				expect(comments[1].metadata.pinnedAt).toBeDefined();
+				expect(comments[1].depth).toEqual(-1);
+
+				logTest('Testing unpin comment...');
+				await permaweb.unpinComment({
+					commentsId: commentsId,
+					commentId: comments[1].id
+				});
+
+				comments = await permaweb.getComments({ commentsId: commentsId });
+				
+				expect(comments[1].metadata).toEqual([])
+				expect(comments[1].depth).toEqual(0);
+
 				logTest('Testing comment removal...');
-				const commentRemoveUpdate = await permaweb.removeComment({
+				await permaweb.removeComment({
 					commentsId: commentsId,
 					commentId: comments[0].id
 				});
 
 				comments = await permaweb.getComments({ commentsId: commentsId });
-
-				expect(comments).toEqualLength(1);
+				expect(comments[0].content).toEqual("")
+				expect(comments[0].status).toEqual("inactive");			
 			}
 			else {
 				logError('Comment creation failed');
