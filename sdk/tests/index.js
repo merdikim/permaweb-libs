@@ -113,7 +113,7 @@ function logError(message) {
 
 	const dependencies = {
 		ao: connect({
-			MODE: 'mainnet',
+			MODE: 'legacy',
 			URL: AO_NODE.url,
 			SCHEDULER: AO_NODE.scheduler,
 			signer: signer,
@@ -150,17 +150,30 @@ function logError(message) {
 
 			logTest('Testing zone fetch...');
 			const zone = await permaweb.getZone(zoneId);
+			
+			const rolesLength = Object.keys(zone.roles).length  
 
-			expect(zone).toEqual({
-				store: {
+			expect(zone.store).toEqual({
 					name: 'Sample Zone',
 					metadata: {
 						description: 'A test zone for unit testing',
 						version: '1.0.0',
-					},
-				},
-				assets: [],
+					}
 			});
+
+			logTest('Testing set zone roles...');
+			const newRole = {
+				granteeId: "0niCwaVVQOwNiIZwCylLJW1jVfs2QfnPvo561cU9Xxg",
+				roles: ['Contributor'],
+				type: 'wallet',
+				sendInvite: true
+			}
+			await permaweb.setZoneRoles([newRole], zoneId)
+			const updatedZone = await permaweb.getZone(zoneId);
+			const addedKey = Object.keys(updatedZone.roles)[Object.keys(updatedZone.roles).length - 1] 
+			expect(Object.keys(updatedZone.roles).length).toEqual(rolesLength + 1)
+			expect(addedKey).toEqual(newRole.granteeId)
+
 		} catch (e) {
 			logError(e.message ?? 'Zone tests failed');
 		}
