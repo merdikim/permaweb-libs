@@ -79,10 +79,7 @@ export function createCollectionWith(deps: DependencyType) {
 
 		try {
 			const aoCreateProcess = aoCreateProcessWith(deps);
-			const collectionId = await aoCreateProcess(
-				{ tags: tags },
-				callback ? (status) => callback(status) : undefined,
-			);
+			const collectionId = await aoCreateProcess({ tags: tags }, callback ? (status) => callback(status) : undefined);
 
 			globalLog('Sending eval message to collection...');
 			if (callback) callback('Sending eval message to collection...');
@@ -192,12 +189,13 @@ export function getCollectionWith(deps: DependencyType) {
 
 export function getCollectionsWith(deps: DependencyType) {
 	return async (args: { creator?: string }): Promise<CollectionType[] | null> => {
-		const action = args.creator ? 'Get-Collections-By-User' : 'Get-Collections';
+		const payload = args?.creator
+			? { action: 'Get-Collections-By-User', tags: [{ name: 'Creator', value: args.creator }] }
+			: { action: 'Get-Collections' };
 
 		const response = await aoDryRun(deps, {
 			processId: AO.collectionRegistry,
-			action: action,
-			tags: args.creator ? [{ name: 'Creator', value: args.creator }] : null,
+			...payload,
 		});
 
 		if (response && response.Collections && response.Collections.length) {
