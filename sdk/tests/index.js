@@ -173,6 +173,14 @@ function logError(message) {
 			const addedKey = Object.keys(updatedZone.roles)[Object.keys(updatedZone.roles).length - 1];
 			expect(Object.keys(updatedZone.roles).length).toEqual(rolesLength + 1);
 			expect(addedKey).toEqual(newRole.granteeId);
+
+			logTest('Testing update zone authority...');
+			const authorityId = "ELuEcBHTwlhVUyUjw0eFXQGoDWrg4TAjBwRAjt9boYI"
+			await permaweb.updateZoneAuthorities({zoneId, authorityId})
+			const zoneWithNewAuthorities = await permaweb.getZone(zoneId);
+
+			expect(zoneWithNewAuthorities.authorities.length).toEqual(2)
+			expect(zoneWithNewAuthorities.authorities[1]).toEqual(authorityId)
 		} catch (e) {
 			logError(e.message ?? 'Zone tests failed');
 		}
@@ -352,12 +360,21 @@ function logError(message) {
 
 				expect(commentAdd2).toBeDefined();
 
+				const commentAdd3 = await permaweb.createComment({
+					commentsId: commentsId,
+					creator: CREATOR,
+					content: 'Test Comment 3',
+				});
+
+
+				expect(commentAdd3).toBeDefined();
+
 				logTest('Testing comments fetch...');
 				let comments = await permaweb.getComments({
 					commentsId: commentsId,
 				});
 
-				expect(comments).toEqualLength(2);
+				expect(comments).toEqualLength(3);
 
 				logTest('Testing comment status update...');
 				await permaweb.updateCommentStatus({
@@ -404,12 +421,23 @@ function logError(message) {
 				logTest('Testing comment removal...');
 				await permaweb.removeComment({
 					commentsId: commentsId,
-					commentId: comments[0].id,
+					commentId: comments[1].id,
 				});
 
 				comments = await permaweb.getComments({ commentsId: commentsId });
-				expect(comments[0].content).toEqual('');
-				expect(comments[0].status).toEqual('inactive');
+				expect(comments[1].content).toEqual('');
+				expect(comments[1].status).toEqual('inactive');
+
+
+				logTest('Testing user comment removal...');
+				await permaweb.userRemoveComment({
+					commentsId: commentsId,
+					commentId: comments[2].id,
+				});
+
+				comments = await permaweb.getComments({ commentsId: commentsId });
+				expect(comments[2].content).toEqual('');
+				expect(comments[2].status).toEqual('inactive');
 			} else {
 				logError('Comment creation failed');
 			}
@@ -448,6 +476,10 @@ function logError(message) {
 			//COMMENTED OUT BECAUSE COLLECTION ID IS NOT RETURNED IN THE COLLECTION OBJECT
 			//expect(collection.id).toEqual(collectionId);
 
+			expect(collection.name).toEqual('Sample collection title');
+			expect(collection.creator).toEqual(profileId);
+			expect(collection.description).toEqual('Sample collection description');
+		
 			logTest('Testing collection assets update...');
 			const collectionUpdateId = await permaweb.updateCollectionAssets({
 				collectionId: collectionId,
@@ -460,24 +492,24 @@ function logError(message) {
 			expect(collectionUpdateId).toEqualType('string');
 
 			logTest('Sleeping for collection update...');
-			await new Promise((r) => setTimeout(r, 5000));
+			await new Promise((r) => setTimeout(r, 10000));
 
 			logTest('Testing updated collection fetch...');
 			const updatedCollection = await permaweb.getCollection(collectionId);
 
 			expect(updatedCollection).toBeDefined();
 
-			// const expectedAssets = [
-			// 	'BvKq3F8psspbAvIDBAlgiG3E_XwiszSfJIYSg3kl0BU',
-			// 	'Loe-SwVioq8_xqbbzM-0TxMC4Lq8IobHNLyHQWgxaGk',
-			// ].sort();
+			const expectedAssets = [
+				'BvKq3F8psspbAvIDBAlgiG3E_XwiszSfJIYSg3kl0BU',
+				'Loe-SwVioq8_xqbbzM-0TxMC4Lq8IobHNLyHQWgxaGk',
+			].sort();
 
-			// const actualAssets = updatedCollection.assetIds.sort();
+			const actualAssets = updatedCollection.assets.sort();
 
-			// expect(actualAssets).toEqual(expectedAssets);
+			expect(actualAssets).toEqual(expectedAssets);
 
 			// logTest('Testing collections fetch...');
-			// const collections = await permaweb.getCollections({creator: profileId});
+			// const collections = await permaweb.getCollections() //getCollections({creator: profileId});
 			// console.log(collections);
 		} catch (e) {
 			logError(e.message ?? 'Collection tests failed');
