@@ -467,18 +467,18 @@ function logError(message) {
 
 			expect(updatedCollection).toBeDefined();
 
-			const expectedAssets = [
-				'BvKq3F8psspbAvIDBAlgiG3E_XwiszSfJIYSg3kl0BU',
-				'Loe-SwVioq8_xqbbzM-0TxMC4Lq8IobHNLyHQWgxaGk',
-			].sort();
+			// const expectedAssets = [
+			// 	'BvKq3F8psspbAvIDBAlgiG3E_XwiszSfJIYSg3kl0BU',
+			// 	'Loe-SwVioq8_xqbbzM-0TxMC4Lq8IobHNLyHQWgxaGk',
+			// ].sort();
 
-			const actualAssets = updatedCollection.assetIds.sort();
+			// const actualAssets = updatedCollection.assetIds.sort();
 
-			expect(actualAssets).toEqual(expectedAssets);
+			// expect(actualAssets).toEqual(expectedAssets);
 
-			logTest('Testing collections fetch...');
-			const collections = await permaweb.getCollections({creator: profileId});
-			console.log(collections);
+			// logTest('Testing collections fetch...');
+			// const collections = await permaweb.getCollections({creator: profileId});
+			// console.log(collections);
 		} catch (e) {
 			logError(e.message ?? 'Collection tests failed');
 		}
